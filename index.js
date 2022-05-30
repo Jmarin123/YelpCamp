@@ -3,10 +3,12 @@ const app = express();
 const path = require('path');
 const mongoose = require('mongoose');
 const Campground = require('./models/campground');
+const ejsEngine = require('ejs-mate');
 const methodOverride = require('method-override');
 app.set('view engine', 'ejs'); //Tells us what engine (ejs) we wanna use
 app.set('views', path.join(__dirname, 'views')); //How to get the views directory.
 
+app.engine('ejs', ejsEngine);
 app.use(express.urlencoded({ extended: true }))//Able to parse the body
 app.use(methodOverride('_method'));
 

@@ -19,8 +19,10 @@
   "homepage": "https://github.com/Jmarin123/YelpCamp#readme",
   "dependencies": {
     "ejs": "^3.1.8",
+    "ejs-mate": "^4.0.0",
     "express": "^4.18.1",
     "method-override": "^3.0.0",
-    "mongoose": "^6.3.4"
+    "mongoose": "^6.3.4",
+    "nodemon": "^2.0.16"
   }
 }
