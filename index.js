@@ -2,12 +2,15 @@ const express = require('express');
 const app = express();
 const path = require('path');
 const mongoose = require('mongoose');
-const Campground = require('./models/campground');
-const Review = require('./models/review');
-const wrapAsync = require('./utility/wrapAsync');
 const ExpressError = require('./utility/ExpressError');
-const { reviewSchema } = require('./schema.js');
 const campgroundRoute = require('./routes/campgrounds');
+const reviewsRoute = require('./routes/reviews');
+const authRoute = require('./routes/users');
+const passport = require('passport');
+const passportLocal = require('passport-local');
+const User = require('./models/user');
+const flash = require('connect-flash');
+const session = require('express-session');
 const ejsEngine = require('ejs-mate');
 const methodOverride = require('method-override');
 app.set('view engine', 'ejs'); //Tells us what engine (ejs) we wanna use
@@ -16,7 +19,7 @@ app.set('views', path.join(__dirname, 'views')); //How to get the views director
 app.engine('ejs', ejsEngine);
 app.use(express.urlencoded({ extended: true }))//Able to parse the body
 app.use(methodOverride('_method'));
-
+app.use(express.static(path.join(__dirname, 'public')));
 
 mongoose.connect('mongodb://localhost:27017/yelpCamp');
 
@@ -27,43 +30,45 @@ db.once("open", function () {
 });
 
 
-const validationOfReview = (req, res, next) => {
-    const { error } = reviewSchema.validate(req.body);
-    if (error) {
-        const msg = error.details.map(e => e.message).join(',');
-        throw new ExpressError(msg, 400);
-    } else {
-        next();
+const sessionConfig = {
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+        httpOnly: true,
+        expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
+        maxAge: 1000 * 60 * 60 * 24 * 7
     }
 }
 
-app.use('/campgrounds', campgroundRoute);
+app.use(session(sessionConfig));
+app.use(flash());
 
-app.get('/', (req, res) => {
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new passportLocal(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
+app.use((req, res, next) => {
+    res.locals.success = req.flash('success');
+    res.locals.error = req.flash('error');
+    next();
+})
+app.use('/campgrounds', campgroundRoute);
+app.use('/campgrounds/:id/reviews', reviewsRoute);
+app.use('/', authRoute);
+
+app.get('/', (_req, res) => {
     res.render('home');
 })
 
-app.post('/campgrounds/:id/reviews', validationOfReview, wrapAsync(async (req, res) => {
-    const campground = await Campground.findById(req.params.id);
-    const review = new Review(req.body.review);
-    campground.reviews.push(review);
-    await review.save();
-    await campground.save();
-    res.redirect(`/campgrounds/${campground._id}`);
-}));
 
-app.delete('/campgrounds/:id/reviews/:reviewId', wrapAsync(async (req, res) => {
-    const { id, reviewId } = req.params;
-    await Campground.findByIdAndUpdate(id, { $pull: { reviews: reviewId } });
-    await Campground.findByIdAndDelete(reviewId);
-    res.redirect(`/campgrounds/${id}`);
-}));
 
-app.all('*', (req, res, next) => {
+app.all('*', (_req, _res, next) => {
     next(new ExpressError('Not a valid route', 404));
 })
 
-app.use((err, req, res, next) => {
+app.use((err, _req, res, _next) => {
     const { status = 500 } = err;
     if (!err.message) err.message = 'Something Went Wrong';
     res.status(status).render('error', { err });
