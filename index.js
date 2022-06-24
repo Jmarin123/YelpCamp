@@ -1,3 +1,6 @@
+if (process.env.NODE_ENV !== "production") {
+    require('dotenv').config();
+}
 const express = require('express');
 const app = express();
 const path = require('path');
@@ -31,6 +34,7 @@ db.once("open", function () {
 
 
 const sessionConfig = {
+    secret: process.env.SESSION_ID,
     resave: false,
     saveUninitialized: true,
     cookie: {
@@ -50,6 +54,10 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 app.use((req, res, next) => {
+    if (!['/login', '/', '/aaa'].includes(req.originalUrl)) {
+        req.session.returnTo = req.originalUrl;
+    }
+    res.locals.currentUser = req.user;
     res.locals.success = req.flash('success');
     res.locals.error = req.flash('error');
     next();
