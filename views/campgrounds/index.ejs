@@ -1,4 +1,5 @@
 <% layout('layouts/boilerplate') %>
+    <div id="map" style="width: 100%; height: 500px;"></div>
     <h1>Campgrounds:</h1>
     <div>
         <a href="/campgrounds/new">Create New Campground</a>
@@ -7,7 +8,12 @@
         <div class="card mb-3">
             <div class="row">
                 <div class="col-md-4">
-                    <img src="<%= campground.images[0].url %> " alt="" class="img-fluid">
+                    <% if (campground.images.length> 0) { %>
+                        <img src="<%= campground.images[0].url %>" alt="" class="img-fluid">
+                        <% } else { %>
+                            <img src="https://res.cloudinary.com/dvdmwk3rm/image/upload/v1656054607/YelpCamp/pupd9na1wzqc05mswy64.jpg"
+                                alt="" class="img-fluid">
+                            <% } %>
                 </div>
                 <div class="col-md-8">
                     <div class="card-body">
