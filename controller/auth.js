@@ -33,7 +33,7 @@ module.exports.loginPage = (req, res) => {
 module.exports.loginUser = (req, res) => {
     req.flash('success', 'Welcome Back');
     const redirectUrl = req.session.returnTo || '/campgrounds';
-    //console.log(redirectUrl);
+    console.log(redirectUrl);
     delete req.session.returnTo;
     res.redirect(redirectUrl);
 };
