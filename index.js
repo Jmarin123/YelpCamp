@@ -36,7 +36,7 @@ db.on("error", console.error.bind(console, "connection error: "));
 db.once("open", function () {
     console.log("Connected successfully");
 });
-const secretStr = SESSION_ID || 'backupsecret'
+const secretStr = process.env.SESSION_ID || 'backupsecret'
 const store = MongoStore.create({
     mongoUrl: dbUrl,
     touchAfter: 24 * 60 * 60,
