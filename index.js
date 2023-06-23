@@ -62,6 +62,7 @@ const sessionConfig = {
 app.use(session(sessionConfig));
 app.use(flash());
 const scriptSrcUrls = [
+    "https://code.jquery.com/",
     "https://stackpath.bootstrapcdn.com/",
     "https://api.tiles.mapbox.com/",
     "https://api.mapbox.com/",
